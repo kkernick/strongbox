@@ -1,0 +1,21 @@
+#!/bin/bash
+
+cmdline () { xargs -n 1 -a "/proc/cmdline" | grep "${1}=" | cut -d "=" -f 2; }
+
+ROOT=$(cmdline "zfs")
+POOL=$(echo $ROOT | cut -d "/" -f 1)
+ADDRESS=$(cmdline "address")
+
+if [ "$(zfs get -H -o value keystatus $POOL)" != "available" ]; then
+	if [ "$ADDRESS" != "notpm" ]; then KEY=$(handle.tpm -m unseal -a $ADDRESS); fi
+	if [[ -z $KEY ]]; then
+		while [ "$(zfs get -H -o value keystatus $POOL)" != "available" ]; do
+			systemd-ask-password "Enter password for $POOL" | zfs load-key $POOL
+		done
+	else
+		echo $KEY | zfs load-key $POOL
+	fi
+fi
+
+mkdir /sysroot
+mount.zfs $ROOT /sysroot

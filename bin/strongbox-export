@@ -1,0 +1,4 @@
+#!/bin/sh
+
+zfs umount -a
+zpool export -a

@@ -1,0 +1,14 @@
+[Unit]
+Description=Generate shutdown-ramfs correctly
+DefaultDependencies=no
+Before=shutdown.target
+ConditionFileIsExecutable=!/run/initramfs/shutdown
+
+[Service]
+Type=oneshot
+ExecStart=mount -t tmpfs tmpfs /run/initramfs
+ExecStart=/usr/bin/mkinitcpio -A sd-shutdown -A strongbox-shutdown -k none -c /dev/null -g /run/initramfs.img
+ExecStart=/usr/bin/bsdtar -C /run/initramfs -xf /run/initramfs.img
+
+[Install]
+WantedBy=shutdown.target

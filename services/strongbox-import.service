@@ -1,0 +1,12 @@
+[Unit]
+Description=Imports the Strongbox pool
+After=initrd-root-device.target
+Before=strongbox.service
+
+[Service]
+Type=oneshot
+ExecStart=strongbox-import
+
+[Install]
+WantedBy=initrd-root-device.target
+

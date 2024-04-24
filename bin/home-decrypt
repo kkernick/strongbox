@@ -1,0 +1,16 @@
+#!/bin/sh
+
+POOL=$(xargs -n 1 -a "/proc/cmdline" | grep "zfs=" | cut -d "=" -f 2 | cut -d "/" -f 1)
+
+# Ensure the user actually exists
+INFO=$(zfs list "$POOL/home/$PAM_USER")
+if [ -z "$INFO" ]; then
+	exit  0
+fi
+
+# Load the key, since this is a PAM script, its given via stdin
+zfs load-key "$POOL/home/$PAM_USER"
+if [ $? -eq 0 ]; then
+	zfs mount "$POOL/home/$PAM_USER"
+	mount -m -t tmpfs tmpfs "$(zfs get -H -o value mountpoint "$POOL/home/$PAM_USER")/.cache"
+fi

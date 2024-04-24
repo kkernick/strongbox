@@ -1,0 +1,13 @@
+[Unit]
+Description=Unlock the Root Volume with Strongbox
+After=strongbox-import.service
+Requires=strongbox-import.service
+Before=sysroot.mount
+
+[Service]
+Type=oneshot
+ExecStart=strongbox-decrypt
+
+[Install]
+WantedBy=initrd-root-device.target
+

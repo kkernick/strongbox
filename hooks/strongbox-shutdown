@@ -1,0 +1,15 @@
+#!/bin/bash
+
+build() {
+    map add_binary sh zpool zfs
+    add_dir /usr/lib/systemd/system-shutdown
+    add_binary /usr/bin/strongbox-export /usr/lib/systemd/system-shutdown/strongbox-export
+}
+
+help() {
+    cat <<HELPEOF
+Add strongbox-export to export the root ZFS pool on shutdown
+HELPEOF
+}
+
+# vim: set ft=sh ts=4 sw=4 et:

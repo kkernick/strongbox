@@ -1,0 +1,28 @@
+#!/bin/bash
+
+build() {
+	add_module zfs tpm_tss tpm_crb
+
+	map add_binary zfs zpool mount.zfs
+	map add_binary sh bash strongbox-decrypt shred mkdir chmod rmdir \
+		systemd-ask-password openssl xargs grep cut strongbox-import echo
+	map add_binary handle.tpm tpm2_startauthsession \
+		tpm2_policypcr tpm2_unseal tpm2_readpublic tpm2_flushcontext \
+		tpm2_pcrextend
+
+	for service in strongbox{,-import}.service; do
+		add_file /usr/lib/systemd/system/$service
+		add_symlink /usr/lib/systemd/system/initrd-root-device.target.wants/$service ../$service
+	done
+
+	map add_systemd_unit "systemd-ask-password-console.path" "systemd-ask-password-console.service"
+
+	map add_file "/etc/zfs/zpool.cache" "/etc/hostid"
+}
+
+help() {
+	cat <<HELPEOF
+Adds Automatic unlocking using Strongbox
+HELPEOF
+}
+
