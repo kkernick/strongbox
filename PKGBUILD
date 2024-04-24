@@ -7,10 +7,12 @@ sha256sums=("SKIP")
 depends=(zfs-utils)
 optdepends=(handle-tpm)
 arch=(x86_64)
+provides=(strongbox-tpm2)
+conflicts=(strongbox-tpm2)
 
 pkgver() {
-  cd "$pkgname"
-  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+    cd $srcdir/strongbox
+    printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
 }
 
 package() {

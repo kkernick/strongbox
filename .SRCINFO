@@ -4,6 +4,8 @@ pkgbase = strongbox-tpm2-git
 	arch = x86_64
 	depends = zfs-utils
 	optdepends = handle-tpm
+	provides = strongbox-tpm2
+	conflicts = strongbox-tpm2
 	source = git+https://github.com/kkernick/strongbox.git
 	sha256sums = SKIP
 
