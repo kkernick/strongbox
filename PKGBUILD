@@ -1,6 +1,6 @@
 pkgname=strongbox-tpm2-git
-pkgver=2
-pkgrel=5
+pkgver=r3.aa83b07
+pkgrel=1
 
 source=("git+https://github.com/kkernick/strongbox.git")
 sha256sums=("SKIP")

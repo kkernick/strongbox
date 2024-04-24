@@ -1,6 +1,6 @@
 pkgbase = strongbox-tpm2-git
-	pkgver = 2
-	pkgrel = 5
+	pkgver = r3.aa83b07
+	pkgrel = 1
 	arch = x86_64
 	depends = zfs-utils
 	optdepends = handle-tpm
