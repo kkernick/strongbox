@@ -1,6 +1,7 @@
 [Unit]
 Description=Imports the Strongbox pool
 After=initrd-root-device.target
+After=systemd-hibernate-resume.service
 Before=strongbox.service
 
 [Service]
@@ -9,4 +10,3 @@ ExecStart=strongbox-import
 
 [Install]
 WantedBy=initrd-root-device.target
-
