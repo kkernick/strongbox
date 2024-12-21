@@ -9,8 +9,9 @@ if [ -z "$INFO" ]; then
 fi
 
 # Load the key, since this is a PAM script, its given via stdin
-zfs load-key "$POOL/home/$PAM_USER"
-if [ $? -eq 0 ]; then
-	zfs mount "$POOL/home/$PAM_USER"
-	mount -m -t tmpfs tmpfs "$(zfs get -H -o value mountpoint "$POOL/home/$PAM_USER")/.cache"
+if [ $(zfs get -Ho value keystatus $dataset) != "available" ]; then
+  zfs load-key "$POOL/home/$PAM_USER"
 fi
+
+zfs mount "$POOL/home/$PAM_USER"
+mount -m -t tmpfs tmpfs "$(zfs get -H -o value mountpoint "$POOL/home/$PAM_USER")/.cache"

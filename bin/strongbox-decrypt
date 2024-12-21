@@ -1,21 +1,39 @@
-#!/bin/bash
+#!/bin/sh
 
 cmdline () { xargs -n 1 -a "/proc/cmdline" | grep "${1}=" | cut -d "=" -f 2; }
 
-ROOT=$(cmdline "zfs")
-POOL=$(echo $ROOT | cut -d "/" -f 1)
-ADDRESS=$(cmdline "address")
+# Iterate through every dataset.
+for dataset in $(zfs list -Ho name); do
 
-if [ "$(zfs get -H -o value keystatus $POOL)" != "available" ]; then
-	 if [ -n "$ADDRESS" ] && [ "$ADDRESS" != "notpm" ]; then KEY=$(handle.tpm -m unseal -a $ADDRESS); fi
-	if [[ -z $KEY ]]; then
-		while [ "$(zfs get -H -o value keystatus $POOL)" != "available" ]; do
-			systemd-ask-password "Enter password for $POOL" | zfs load-key $POOL
-		done
-	else
-		echo $KEY | zfs load-key $POOL
-	fi
-fi
+  # Find datasets that are not decrypted, and are their own encryption roots.
+  if [ $(zfs get -Ho value keystatus $dataset) != "available" ] && [ "$(zfs get -Ho value encryptionroot $dataset)" == "${dataset}" ]; then
 
+    UNLOCKED=255
+    ADDRESS=$(zfs get -Ho value "strongbox:address" $dataset)
+
+    # noboot means we don't decrypt this dataset on boot time.
+    if [ "${ADDRESS}" == "noboot" ]; then
+      continue
+    fi
+
+    # If we have an address, try and unseal it using the TPM.
+    if [ "${ADDRESS}" != "notpm" ]; then
+      # We persist it so that multiple datasets can be decrypted using the same attested state.
+      handle.tpm -m unseal -a $ADDRESS -p | zfs load-key $dataset
+      UNLOCKED=$?
+    fi
+
+    # Prompt for unlock until the user provides the correct password.
+    while [ $UNLOCKED -ne 0 ]; do
+ 			systemd-ask-password "Enter password for $dataset" | zfs load-key $dataset
+      UNLOCKED=$?
+    done
+  fi
+done
+
+# We then wipe the PCRs once all decryption has been performed.
+handle.tpm -m erase
+
+# Make the sysroot to mount the root filesystem.
 mkdir /sysroot
-mount.zfs $ROOT /sysroot
+mount.zfs $(cmdline "zfs") /sysroot
