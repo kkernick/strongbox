@@ -9,7 +9,7 @@ if [ -z "$INFO" ]; then
 fi
 
 # Load the key, since this is a PAM script, its given via stdin
-if [ $(zfs get -Ho value keystatus $dataset) != "available" ]; then
+if [ $(zfs get -Ho value keystatus $POOL/home/$PAM_USER) != "available" ]; then
   zfs load-key "$POOL/home/$PAM_USER"
 fi
 
