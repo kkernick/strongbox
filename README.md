@@ -19,6 +19,7 @@ The second property is `strongbox:strategy`, which defines the strategy for data
 2. `tpm`: Use the TPM to decrypt the encryption root at `strongbox:address`. If it fails, leave the dataset encrypted. Use this for datasets that should only be available if the state can be attested; if you have more than one encryption root, each will be prompted for if `both` is the strategy, which can be tedious. Use `tpm` for non-essential datasets.
 3. `pin`: Only prompt for manual password entry. Use this if you do not have a TPM, or want to proactively defend against Evil Maid attacks by requiring a password to boot.
 4. `none`: Do not try and decrypt the dataset at boot time. Use this if you have encrypted datasets that you don't need decrypted at boot time, such as a home dataset tied to the user's password.
+5. `enhanced`: Use the `-e` flag within `handle.tpm` for enhanced sealing. With this setup, secrets are sealed with PCR attestation, but are additionally encrypted with a PIN. This is useful for the root dataset, as it prevents cold-boot attacks while requiring a simpler PIN on boot rather than the encryption key.
 
 Additionally, the root dataset must be specified via the `zfs=` kernel argument, such as `zfs=rpool/root`.
 
