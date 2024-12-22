@@ -32,7 +32,11 @@ for dataset in $(zfs list -Ho name); do
 done
 
 # We then wipe the PCRs once all decryption has been performed.
-handle.tpm -m erase
+if [ "$(cmdline "strongbox.enroll")" != "on" ]; then
+  handle.tpm -m erase
+else
+  echo "System is in enroll mode."
+fi
 
 # Make the sysroot to mount the root filesystem.
 mkdir /sysroot
