@@ -17,15 +17,20 @@ for dataset in $(zfs list -Ho name); do
       continue
     fi
 
+    # We only try the enhanced method once. If the TPM/PIN fails, we fallback to the password.
+    if [ "${STRATEGY}" == "enhanced" ]; then
+      handle.tpm -m unseal -a $ADDRESS -p -e -c $dataset | zfs load-key $dataset
+      UNLOCKED=$?
+
     # If we have an address, try and unseal it using the TPM.
-    if [ "${STRATEGY}" == "tpm" ] || [ "${STRATEGY}" == "both" ]; then
+    elif [ "${STRATEGY}" == "tpm" ] || [ "${STRATEGY}" == "both" ]; then
       # We persist it so that multiple datasets can be decrypted using the same attested state.
       handle.tpm -m unseal -a $ADDRESS -p | zfs load-key $dataset
       UNLOCKED=$?
     fi
 
     # Prompt for unlock until the user provides the correct password.
-    if [ "${STRATEGY}" == "pin" ] || [ "${STRATEGY}" == "both" ]; then
+    if [ "${STRATEGY}" == "pin" ] || [ "${STRATEGY}" == "both" ] || [ "${STRATEGY}" == "enhanced" ]; then
       attempt=1
       while [ $attempt -le 3 ] && [ $UNLOCKED -ne 0 ]; do
    			systemd-ask-password "Enter password for $dataset" | zfs load-key $dataset
