@@ -10,24 +10,29 @@ for dataset in $(zfs list -Ho name); do
 
     UNLOCKED=255
     ADDRESS=$(zfs get -Ho value "strongbox:address" $dataset)
+    STRATEGY=$(zfs get -Ho value "strongbox:strategy" $dataset)
 
     # noboot means we don't decrypt this dataset on boot time.
-    if [ "${ADDRESS}" == "noboot" ]; then
+    if [ "${STRATEGY}" == "none" ]; then
       continue
     fi
 
     # If we have an address, try and unseal it using the TPM.
-    if [ "${ADDRESS}" != "notpm" ]; then
+    if [ "${STRATEGY}" == "tpm" ] || [ "${STRATEGY}" == "both" ]; then
       # We persist it so that multiple datasets can be decrypted using the same attested state.
       handle.tpm -m unseal -a $ADDRESS -p | zfs load-key $dataset
       UNLOCKED=$?
     fi
 
     # Prompt for unlock until the user provides the correct password.
-    while [ $UNLOCKED -ne 0 ]; do
- 			systemd-ask-password "Enter password for $dataset" | zfs load-key $dataset
-      UNLOCKED=$?
-    done
+    if [ "${STRATEGY}" == "pin" ] || [ "${STRATEGY}" == "both" ]; then
+      attempt=1
+      while [ $attempt -le 3 ] && [ $UNLOCKED -ne 0 ]; do
+   			systemd-ask-password "Enter password for $dataset" | zfs load-key $dataset
+        UNLOCKED=$?
+        ((attempt++))
+      done
+    fi
   fi
 done
 
