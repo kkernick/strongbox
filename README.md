@@ -71,3 +71,14 @@ Then, any login of the user will automatically:
 1. Unlock the home dataset
 2. Mount a `tmpfs` to the user's `.cache`
 3. Mount the home dataset to `/home/USER`
+
+## Pool Imports
+
+By default, `strongbox` only imports the root pool during bootup in the initramfs. If you wish to use the TPM to decrypt other pools using the TPM and attested state in the initramfs, you can trivially add overrides to the `strongbox-import` service. Simply create the `/usr/lib/systemd/system/strongbox-import.service.d` folder, and create `.conf` files that contain the drop-ins. For example:
+
+```
+[Service]
+ExecStart=zpool import zdata -N
+```
+
+Because we do not read in cachefiles, however, this can add some latency to bootup since drives must be queried.

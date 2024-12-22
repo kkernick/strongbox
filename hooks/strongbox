@@ -15,6 +15,8 @@ build() {
 		add_symlink /usr/lib/systemd/system/initrd-root-device.target.wants/$service ../$service
 	done
 
+	add_full_dir /usr/lib/systemd/system/strongbox-import.service.d
+
 	map add_systemd_unit "systemd-ask-password-console.path" "systemd-ask-password-console.service"
 
 	map add_file "/etc/zfs/zpool.cache" "/etc/hostid"
