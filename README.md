@@ -2,22 +2,24 @@
 
  Decrypt ZFS root volumes with `systemd`, with TPM backed encryption
 
+ > [!warning]
+ > Version 2, introduced with commit b151cb7, uses a completely new method for encryption, which will break existing installations.
+
 ## Installation
 
 Download the PKGBUILD and run `makepkg -si`
 
 ## Setup
 
-Firstly, the root volume must have a few conditions:
+`strongbox` relies on the `strongbox:address` ZFS user property to determine the decryption method that should be applied for a dataset. This can be set via `zfs set strongbox:address=VALUE dataset`. There are three values:
 
-1. The root is stored as a dataset within the root pool (IE `zroot/root`)
-2. The root dataset has a `legacy` mountpoint. If this isn't true, it can be modified via `zfs set mountpoint=legacy POOL`
-3. If encryption is used, it must be applied to the pool globally, rather than just the root dataset (IE `zroot` must have encryption, not just `zroot/root`)
+1. `noboot`: For datasets that should not be decrypted on boot.
+2. `notpm`: For datasets that do not have a secret stored on the TPM, and to which a key should be prompted for.
+3 A hexadecimal address within the TPM NVRAM, such as `0x81010010`.
 
-Next, the following kernel arguments are needed:
+For inherited encryption, decryption will only be done on the encryption root.
 
-1. A `zfs=` argument that points to the pool + dataset of the root (IE `zroot/root`)
-2. An `address=` argument that defines the TPM address that the encryption key is sealed at. Can be set to `notpm` to simply prompt the user for a password at boot-time, or omitted entirely if encryption isn't used.
+Additionally, the root dataset must be specified via the `zfs=` kernel argument, such as `zfs=rpool/root`.
 
 Then, enable the following `systemd` services:
 
@@ -25,7 +27,7 @@ Then, enable the following `systemd` services:
 2. `strongbox-import.service`: Handles importing the root volume
 3. `strongbox-shutdown-ramfs.service`: `mkinitcpio` does not properly generate a shutdown ramfs, which prevents ZFS from properly exporting on shutdown. This service handles it.
 
-Finally, add the `strongbox` `mkinitcpio` hook to the HOOKS array. You must use the `systemd` hook, as opposed to the `base` hook, and `strongbox` must be *after* `systemd` and `keyboard`. 
+Finally, add the `strongbox` `mkinitcpio` hook to the HOOKS array. You must use the `systemd` hook, as opposed to the `base` hook, and `strongbox` must be *after* `systemd` and `keyboard`.
 
 No other services from `zfs-utils` needs to be enabled (`zfs.target`, `zfs-import.service`, etc) However, you will need a `cachefile` and `hostid` before generating the initcpio. This can be done with:
 
@@ -42,9 +44,10 @@ If the keystatus of the root pool is unavailable at boot, `strongbox` will defau
 handle.tpm -m seal -a ADDRESS
 ```
 
-Where `ADDRESS` is the TPM address in the `address=` kernel argument.
+If you have already booted into a system using strongbox, and hence the PCR values have been randomized, you can use the `strongbox.enroll` kernel argument. Setting it to `on` will disable the PCR clearing on bootup, giving you an accurate PCR state once in the system, and allowing you to seal secrets to the same environment as what would be in the boot environment. Ensure that secure boot is enabled on boot so that its PCR value is used.
 
-To simply prompt for a password, set the value to `address=notpm`.
+> [!warning]
+> `strongbox.enroll=on` allows anyone with root access to leak TPM secrets. Only use this for enrollment, and then immediately disable!
 
 ## Home Decryption
 
