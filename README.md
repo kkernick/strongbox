@@ -11,13 +11,14 @@ Download the PKGBUILD and run `makepkg -si`
 
 ## Setup
 
-`strongbox` relies on the `strongbox:address` ZFS user property to determine the decryption method that should be applied for a dataset. This can be set via `zfs set strongbox:address=VALUE dataset`. There are three values:
+`strongbox` relies on the `strongbox` ZFS user properties to determine the decryption method that should be applied for a dataset. There are two properties that should be defined for each dataset (Although inheritance can provide defaults). The first is `strongbox:address`, which specifies the TPM NVRAM address that the secret is sealed, in hexadecimal format such as `0x81010010`. This value need only be specified for *encryption roots*, so if your pool is encrypted at the pool level, datasets need not have an empty value, since `strongbox` only considers the encryption root for each dataset and uses *its* value for decryption.
 
-1. `noboot`: For datasets that should not be decrypted on boot.
-2. `notpm`: For datasets that do not have a secret stored on the TPM, and to which a key should be prompted for.
-3 A hexadecimal address within the TPM NVRAM, such as `0x81010010`.
+The second property is `strongbox:strategy`, which defines the strategy for dataset decryption in the initramfs. There are four options:
 
-For inherited encryption, decryption will only be done on the encryption root.
+1. `both`: Try using the TPM to decrypt the encryption root at `strongbox:address`; if it fails, fallback to manual password entry. This should be the default value, as it permits a seamless decryption in an attested state, but allows fallback in case of issues.
+2. `tpm`: Use the TPM to decrypt the encryption root at `strongbox:address`. If it fails, leave the dataset encrypted. Use this for datasets that should only be available if the state can be attested; if you have more than one encryption root, each will be prompted for if `both` is the strategy, which can be tedious. Use `tpm` for non-essential datasets.
+3. `pin`: Only prompt for manual password entry. Use this if you do not have a TPM, or want to proactively defend against Evil Maid attacks by requiring a password to boot.
+4. `none`: Do not try and decrypt the dataset at boot time. Use this if you have encrypted datasets that you don't need decrypted at boot time, such as a home dataset tied to the user's password.
 
 Additionally, the root dataset must be specified via the `zfs=` kernel argument, such as `zfs=rpool/root`.
 
