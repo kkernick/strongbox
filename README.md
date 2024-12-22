@@ -78,7 +78,7 @@ By default, `strongbox` only imports the root pool during bootup in the initramf
 
 ```
 [Service]
-ExecStart=zpool import zdata -N
+ExecStart=zpool import -c /etc/zfs/zdata.cache zdata -N
 ```
 
-Because we do not read in cachefiles, however, this can add some latency to bootup since drives must be queried.
+Note that the entire `/etc/zfs` directory is copied into the initramfs, which means that so long as your zpool's cache file exists in that folder, it will be included and available within the boot environment

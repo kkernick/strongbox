@@ -16,10 +16,11 @@ build() {
 	done
 
 	add_full_dir /usr/lib/systemd/system/strongbox-import.service.d
+	add_full_dir /etc/zfs 
 
 	map add_systemd_unit "systemd-ask-password-console.path" "systemd-ask-password-console.service"
 
-	map add_file "/etc/zfs/zpool.cache" "/etc/hostid"
+	add_file "/etc/hostid"
 }
 
 help() {
