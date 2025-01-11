@@ -14,6 +14,6 @@ if [ $(zfs get -Ho value keystatus "${POOL}/home/${PAM_USER}") != "available" ];
 fi
 
 if [[ ! $(findmnt -M $(zfs get -Ho value mountpoint "${POOL}/home/${PAM_USER}")) ]]; then
-	zfs mount "$POOL/home/$PAM_USER"
+	zfs mount -R "$POOL/home/$PAM_USER"
 	mount -m -t tmpfs tmpfs "$(zfs get -H -o value mountpoint "$POOL/home/$PAM_USER")/.cache"
 fi

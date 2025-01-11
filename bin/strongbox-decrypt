@@ -2,21 +2,29 @@
 
 cmdline () { xargs -n 1 -a "/proc/cmdline" | grep "${1}=" | cut -d "=" -f 2; }
 
+
+destroy() {
+  drives=$(zpool status -P $1 | grep /dev | awk '{print $1}')
+  zpool destroy -f $1
+  for drive in $drive; do
+    dd if=/dev/zero of=$drive bs=1M
+  done;
+}
+
 check_duress() {
   input_hash=$(echo $1 | b2sum | awk '{print $1}')
   if [ "${input_hash}" == "${2}" ]; then
     mode=$(zfs get -Ho value "strongbox:duress_mode" $dataset)
+    pool=$(echo $dataset | cut -d / -f 1)
     if [ "${mode}" == "none" ]; then
       echo "Taking no action!"
     elif [ "${mode}" == "tpm" ]; then
       tpm2_clear
     elif [ "${mode}" == "drive" ]; then
-      zpool destroy -f $(echo $dataset | cut -d / -f 1)
-      dd if=/dev/zero of=/dev/gpt-auto-root bs=1M
+      destroy $pool
     elif [ "${mode}" == "nuclear" ]; then
       tpm2_clear
-      zpool destroy -f $(echo $dataset | cut -d / -f 1)
-      dd if=/dev/zero of=/dev/gpt-auto-root bs=1M
+      destroy $pool
     else
       echo "Unrecognized mode, taking no action!"
     fi
