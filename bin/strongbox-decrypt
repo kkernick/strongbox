@@ -2,6 +2,27 @@
 
 cmdline () { xargs -n 1 -a "/proc/cmdline" | grep "${1}=" | cut -d "=" -f 2; }
 
+check_duress() {
+  input_hash=$(echo $1 | b2sum | awk '{print $1}')
+  if [ "${input_hash}" == "${2}" ]; then
+    mode=$(zfs get -Ho value "strongbox:duress_mode" $dataset)
+    if [ "${mode}" == "none" ]; then
+      echo "Taking no action!"
+    elif [ "${mode}" == "tpm" ]; then
+      tpm2_clear
+    elif [ "${mode}" == "drive" ]; then
+      zpool destroy -f $(echo $dataset | cut -d / -f 1)
+      dd if=/dev/zero of=/dev/gpt-auto-root bs=1M
+    elif [ "${mode}" == "nuclear" ]; then
+      tpm2_clear
+      zpool destroy -f $(echo $dataset | cut -d / -f 1)
+      dd if=/dev/zero of=/dev/gpt-auto-root bs=1M
+    else
+      echo "Unrecognized mode, taking no action!"
+    fi
+  fi
+}
+
 # Iterate through every dataset.
 for dataset in $(zfs list -Ho name); do
 
@@ -11,6 +32,7 @@ for dataset in $(zfs list -Ho name); do
     UNLOCKED=255
     ADDRESS=$(zfs get -Ho value "strongbox:address" $dataset)
     STRATEGY=$(zfs get -Ho value "strongbox:strategy" $dataset)
+    HASH=$(zfs get -Ho value "strongbox:duress_hash" $dataset)
 
     # noboot means we don't decrypt this dataset on boot time.
     if [ "${STRATEGY}" == "none" ]; then
@@ -19,7 +41,9 @@ for dataset in $(zfs list -Ho name); do
 
     # We only try the enhanced method once. If the TPM/PIN fails, we fallback to the password.
     if [ "${STRATEGY}" == "enhanced" ]; then
-      handle.tpm -m unseal -a $ADDRESS -p -e -c $dataset | zfs load-key $dataset
+      sealing_pin=$(systemd-ask-password "Enter sealing pin for $dataset")
+      check_duress $sealing_pin $HASH $dataset
+      echo $sealing_pin | handle.tpm -m unseal -a $ADDRESS -p -e -s | zfs load-key $dataset
       UNLOCKED=$?
 
     # If we have an address, try and unseal it using the TPM.
@@ -33,7 +57,9 @@ for dataset in $(zfs list -Ho name); do
     if [ "${STRATEGY}" == "pin" ] || [ "${STRATEGY}" == "both" ] || [ "${STRATEGY}" == "enhanced" ]; then
       attempt=1
       while [ $attempt -le 3 ] && [ $UNLOCKED -ne 0 ]; do
-   			systemd-ask-password "Enter password for $dataset" | zfs load-key $dataset
+        pass=$(systemd-ask-password "Enter password for $dataset")
+        check_duress $pass $HASH $dataset
+        echo $pass | zfs load-key $dataset
         UNLOCKED=$?
         ((attempt++))
       done

@@ -82,3 +82,17 @@ ExecStart=zpool import -c /etc/zfs/zdata.cache zdata -N
 ```
 
 Note that the entire `/etc/zfs` directory is copied into the initramfs, which means that so long as your zpool's cache file exists in that folder, it will be included and available within the boot environment
+
+## Duress Passwords
+
+`strongbox` supports enrolling a duress password for each encryption root that should be decrypted at boot time, with customized behavior on each.
+
+> [!warning]
+> Entering a duress password is intended to destroy a core component of the boot process when using `strongbox`, and thus will render your device inoperable!
+
+To setup a duress password, set the `strongbox:duress_hash` user property to the encryption root that you want to assign a duress password for. The password should be stored as a BLAKE hash, which you can calculate through `systemd-ask-password | b2sum | awk '{print $1}'`. Once stored, you then need to assign an action that `strongbox` should take when the password is provided on boot. Your options are stored in the `strongbox:duress_mode` user property of the encryption root:
+
+1. `none`: Do nothing, but prints to the system log. This can be helpful to test if the password is working, without... you know, obliterating the computer.
+2. `tpm`: Clear the TPM hierarchies. This will effectively evict every secret stored in the TPM using `handle.tpm`. Any passwords stored there will be irrevocablly lost, and if the boot process relied on such as password, in either `tpm` or `enhanced` mode
+3. `drive`: Destroy the root zpool, and `dd` the root drive.
+4. `nuclear`: Both of `tpm` and `drive`.

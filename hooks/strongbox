@@ -5,10 +5,11 @@ build() {
 
 	map add_binary zfs zpool mount.zfs
 	map add_binary sh bash strongbox-decrypt shred mkdir chmod rmdir \
-		systemd-ask-password openssl xargs grep cut strongbox-import echo
+		systemd-ask-password openssl xargs grep cut strongbox-import echo \
+		b2sum awk cat
 	map add_binary handle.tpm tpm2_startauthsession \
 		tpm2_policypcr tpm2_unseal tpm2_readpublic tpm2_flushcontext \
-		tpm2_pcrextend
+		tpm2_pcrextend tpm2_clear
 
 	for service in strongbox{,-import}.service; do
 		add_file /usr/lib/systemd/system/$service
@@ -16,7 +17,7 @@ build() {
 	done
 
 	add_full_dir /usr/lib/systemd/system/strongbox-import.service.d
-	add_full_dir /etc/zfs 
+	add_full_dir /etc/zfs
 
 	map add_systemd_unit "systemd-ask-password-console.path" "systemd-ask-password-console.service"
 
@@ -28,4 +29,3 @@ help() {
 Adds Automatic unlocking using Strongbox
 HELPEOF
 }
-
