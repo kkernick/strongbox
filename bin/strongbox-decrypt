@@ -13,8 +13,9 @@ destroy() {
 
 check_duress() {
   input_hash=$(echo $1 | b2sum | awk '{print $1}')
-  if [ "${input_hash}" == "${2}" ]; then
-    mode=$(zfs get -Ho value "strongbox:duress_mode" $dataset)
+  match_hash=$(echo $2 | cut -d ':' -f 1)
+  if [ "${input_hash}" == "${match_hash}" ]; then
+    mode=$(echo $2 | cut -d ':' -f 2)
     pool=$(echo $dataset | cut -d / -f 1)
     if [ "${mode}" == "none" ]; then
       echo "Taking no action!"
@@ -40,7 +41,10 @@ for dataset in $(zfs list -Ho name); do
     UNLOCKED=255
     ADDRESS=$(zfs get -Ho value "strongbox:address" $dataset)
     STRATEGY=$(zfs get -Ho value "strongbox:strategy" $dataset)
-    HASH=$(zfs get -Ho value "strongbox:duress_hash" $dataset)
+
+    if [ -f "/etc/zfs/${dataset}-hash" ]; then
+      HASH=$(cat "/etc/zfs/${dataset}-hash")
+    fi
 
     # noboot means we don't decrypt this dataset on boot time.
     if [ "${STRATEGY}" == "none" ]; then
@@ -50,7 +54,7 @@ for dataset in $(zfs list -Ho name); do
     # We only try the enhanced method once. If the TPM/PIN fails, we fallback to the password.
     if [ "${STRATEGY}" == "enhanced" ]; then
       sealing_pin=$(systemd-ask-password "Enter sealing pin for $dataset")
-      check_duress $sealing_pin $HASH $dataset
+      if [ -n "${HASH}" ]; then check_duress $sealing_pin $HASH $dataset; fi
       echo $sealing_pin | handle.tpm -m unseal -a $ADDRESS -p -e -s | zfs load-key $dataset
       UNLOCKED=$?
 
@@ -66,7 +70,7 @@ for dataset in $(zfs list -Ho name); do
       attempt=1
       while [ $attempt -le 3 ] && [ $UNLOCKED -ne 0 ]; do
         pass=$(systemd-ask-password "Enter password for $dataset")
-        check_duress $pass $HASH $dataset
+        if [ -n "${HASH}" ]; then check_duress $pass $HASH $dataset; fi
         echo $pass | zfs load-key $dataset
         UNLOCKED=$?
         ((attempt++))

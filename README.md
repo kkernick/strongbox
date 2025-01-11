@@ -90,9 +90,20 @@ Note that the entire `/etc/zfs` directory is copied into the initramfs, which me
 > [!warning]
 > Entering a duress password is intended to destroy a core component of the boot process when using `strongbox`, and thus will render your device inoperable!
 
-To setup a duress password, set the `strongbox:duress_hash` user property to the encryption root that you want to assign a duress password for. The password should be stored as a BLAKE hash, which you can calculate through `systemd-ask-password | b2sum | awk '{print $1}'`. Once stored, you then need to assign an action that `strongbox` should take when the password is provided on boot. Your options are stored in the `strongbox:duress_mode` user property of the encryption root:
+To setup a duress password, create a file within the /etc/zfs directory that follows the scheme `dataset-hash` for each encryption root to which a duress password is desired. Note that zfs uses `/` to separate pool, dataset, and subsets, and this property means that you should create folders. If you want to make password for the dataset `rpool/root`, you would create the file `/etc/zfs/rpool/root-hash`. Within that file, you should store a BLAKE hash of the password, which you can generate via `systemd-ask-password | b2sum | awk '{print $1}'`. Then, add a `:` and the mode, to which the following after supported:
 
 1. `none`: Do nothing, but prints to the system log. This can be helpful to test if the password is working, without... you know, obliterating the computer.
 2. `tpm`: Clear the TPM hierarchies. This will effectively evict every secret stored in the TPM using `handle.tpm`. Any passwords stored there will be irrevocablly lost, and if the boot process relied on such as password, in either `tpm` or `enhanced` mode, it will be lost.
-3. `drive`: Destroy the root zpool, and `dd` the root drive.
+3. `drive`: Destroy the root zpool, and `dd` every drive that made up that pool.
 4. `nuclear`: Both of `tpm` and `drive`.
+
+So, for example, we would put in `/etc/zfs/rpool/root-hash`:
+
+```
+XXXXXXXXXXXX:none
+```
+
+To cause a message to be printed to the log when the duress password is entered.
+
+> [!tip]
+> This setup has been explicitly designed to be used within a Secure Boot Setting. When the hash file is placed into a signed UKI image, we can ensure that neither the hash nor mode can be altered without rendering the UKI invalid.
