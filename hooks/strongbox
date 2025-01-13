@@ -6,7 +6,7 @@ build() {
 	map add_binary zfs zpool mount.zfs
 	map add_binary sh bash strongbox-decrypt shred mkdir chmod rmdir \
 		systemd-ask-password openssl xargs grep cut strongbox-import echo \
-		b2sum awk cat
+		b2sum awk cat dd
 	map add_binary handle.tpm tpm2_startauthsession \
 		tpm2_policypcr tpm2_unseal tpm2_readpublic tpm2_flushcontext \
 		tpm2_pcrextend tpm2_clear
