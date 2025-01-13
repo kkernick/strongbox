@@ -2,5 +2,5 @@
 
 POOL=$(xargs -n 1 -a "/proc/cmdline" | grep "zfs=" | cut -d "=" -f 2 | cut -d "/" -f 1)
 if [ -z $(zpool list -H -o name | grep $POOL) ]; then
-	zpool import -c /etc/zfs/zpool.cache $POOL -N
+	zpool import -f -c /etc/zfs/zpool.cache $POOL -N
 fi
