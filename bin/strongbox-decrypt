@@ -7,7 +7,7 @@ destroy() {
   drives=$(zpool status -P $1 | grep /dev | awk '{print $1}')
   zpool destroy -f $1
   for drive in $drive; do
-    cat /dev/urandom >> $drive
+    cat /dev/urandom > $drive
   done;
 }
 
