@@ -20,11 +20,11 @@ check_duress() {
     if [ "${mode}" == "none" ]; then
       echo "Taking no action!"
     elif [ "${mode}" == "tpm" ]; then
-      tpm2_clear -c platform
+      tpm2_clear
     elif [ "${mode}" == "drive" ]; then
       destroy $pool
     elif [ "${mode}" == "nuclear" ]; then
-      tpm2_clear -c platform
+      tpm2_clear
       destroy $pool
     else
       echo "Unrecognized mode, taking no action!"
