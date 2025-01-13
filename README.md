@@ -27,6 +27,7 @@ Then, enable the following `systemd` services:
 
 1. `strongbox.service`: Handles loading the root's key and mounting at boot-time
 2. `strongbox-import.service`: Handles importing the root volume
+3. `strongbox-export.service`: Exports non-root pools on shutdown.
 3. `strongbox-shutdown-ramfs.service`: `mkinitcpio` does not properly generate a shutdown ramfs, which prevents ZFS from properly exporting on shutdown. This service handles it.
 
 Finally, add the `strongbox` `mkinitcpio` hook to the HOOKS array. You must use the `systemd` hook, as opposed to the `base` hook, and `strongbox` must be *after* `systemd` and `keyboard`.

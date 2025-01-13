@@ -6,7 +6,6 @@ cmdline () { xargs -n 1 -a "/proc/cmdline" | grep "${1}=" | cut -d "=" -f 2; }
 destroy() {
   drives=$(zpool status -P $1 | grep /dev | awk '{print $1}')
   zpool destroy -f $1
-  dd if=/dev/urandom of=/dev/gpt-auto-root iflag=fullblock
   for drive in $drive; do
     dd if=/dev/urandom of=$drive bs=1M iflag=fullblock
   done;
