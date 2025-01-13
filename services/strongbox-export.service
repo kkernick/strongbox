@@ -1,0 +1,11 @@
+  [Unit]
+  Description=Export all pools
+  DefaultDependencies=no
+  After=final.target
+
+  [Service]
+  Type=oneshot
+  ExecStart=zpool export -a
+
+  [Install]
+  WantedBy=final.target
