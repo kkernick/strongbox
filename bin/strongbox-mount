@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cmdline () { xargs -n 1 -a "/proc/cmdline" | grep "${1}=" | cut -d "=" -f 2; }
+
+# We then wipe the PCRs once all decryption has been performed.
+if [ "$(cmdline "strongbox.enroll")" != "on" ]; then
+  handle.tpm -m erase
+else
+  echo "System is in enroll mode."
+fi
+
+# Make the sysroot to mount the root filesystem.
+mkdir /sysroot
+mount.zfs $(cmdline "zfs") /sysroot

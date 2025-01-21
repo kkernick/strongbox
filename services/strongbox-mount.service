@@ -1,0 +1,11 @@
+[Unit]
+Description=Mount the Root Strongbox Pool
+After=strongbox.target
+Before=sysroot.mount
+
+[Service]
+Type=oneshot
+ExecStart=strongbox-mount
+
+[Install]
+WantedBy=initrd-root-device.target

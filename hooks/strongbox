@@ -1,31 +1,45 @@
 #!/bin/bash
 
+
+add_strongbox_unit() {
+  path="${1}"
+  name=$(basename "${path}")
+  wanted="${2}"
+
+  add_file "${path}" "/usr/lib/systemd/system/${name}"
+  add_symlink "/usr/lib/systemd/system/${2}.wants/${service}" "../${service}"
+}
+
+
 build() {
-	add_module zfs tpm_tss tpm_crb
+  add_module zfs tpm_tss tpm_crb
 
-	map add_binary zfs zpool mount.zfs
-	map add_binary sh bash strongbox-decrypt shred mkdir chmod rmdir \
-		systemd-ask-password openssl xargs grep cut strongbox-import echo \
-		b2sum awk cat dd
-	map add_binary handle.tpm tpm2_startauthsession \
-		tpm2_policypcr tpm2_unseal tpm2_readpublic tpm2_flushcontext \
-		tpm2_pcrextend tpm2_clear
+  map add_binary zfs zpool mount.zfs
 
-	for service in strongbox{,-import}.service; do
-		add_file /usr/lib/systemd/system/$service
-		add_symlink /usr/lib/systemd/system/initrd-root-device.target.wants/$service ../$service
-	done
+  map add_binary sh bash strongbox strongbox-decrypt strongbox-import strongbox-mount \
+    shred mkdir chmod rmdir systemd-ask-password openssl xargs grep cut echo \
+    b2sum awk cat dd
 
-	add_full_dir /usr/lib/systemd/system/strongbox-import.service.d
-	add_full_dir /etc/zfs
+  map add_binary handle.tpm tpm2_startauthsession \
+    tpm2_policypcr tpm2_unseal tpm2_readpublic tpm2_flushcontext \
+    tpm2_pcrextend tpm2_clear
 
-	map add_systemd_unit "systemd-ask-password-console.path" "systemd-ask-password-console.service"
+  for import_service in $(find /etc/systemd/system -name "strongbox@*.service"); do
+    add_strongbox_unit "${import_service}" "strongbox.target"
+  done
 
-	add_file "/etc/hostid"
+  add_strongbox_unit "/usr/lib/systemd/system/strongbox-mount.service" "initrd-root-device.target"
+  add_strongbox_unit "/usr/lib/systemd/system/strongbox.target" "strongbox-mount.service"
+
+  add_full_dir /etc/zfs
+
+  map add_systemd_unit "systemd-ask-password-console.path" "systemd-ask-password-console.service"
+
+  add_file "/etc/hostid"
 }
 
 help() {
-	cat <<HELPEOF
+  cat <<HELPEOF
 Adds Automatic unlocking using Strongbox
 HELPEOF
 }

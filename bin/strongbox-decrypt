@@ -1,8 +1,5 @@
 #!/bin/sh
 
-cmdline () { xargs -n 1 -a "/proc/cmdline" | grep "${1}=" | cut -d "=" -f 2; }
-
-
 destroy() {
   drives=$(zpool status -P $1 | grep /dev | awk '{print $1}')
   zpool destroy -f $1
@@ -32,8 +29,16 @@ check_duress() {
   fi
 }
 
+
+if [ -z "${1}" ]; then
+  POOL=$(xargs -n 1 -a "/proc/cmdline" | grep "zfs=" | cut -d "=" -f 2 | cut -d "/" -f 1)
+else
+  POOL="${1}"
+fi
+
+
 # Iterate through every dataset.
-for dataset in $(zfs list -Ho name); do
+for dataset in $(zfs list -Ho name | grep "${POOL}"); do
 
   # Find datasets that are not decrypted, and are their own encryption roots.
   if [ $(zfs get -Ho value keystatus $dataset) != "available" ] && [ "$(zfs get -Ho value encryptionroot $dataset)" == "${dataset}" ]; then
@@ -78,14 +83,3 @@ for dataset in $(zfs list -Ho name); do
     fi
   fi
 done
-
-# We then wipe the PCRs once all decryption has been performed.
-if [ "$(cmdline "strongbox.enroll")" != "on" ]; then
-  handle.tpm -m erase
-else
-  echo "System is in enroll mode."
-fi
-
-# Make the sysroot to mount the root filesystem.
-mkdir /sysroot
-mount.zfs $(cmdline "zfs") /sysroot

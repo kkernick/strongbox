@@ -1,7 +1,7 @@
   [Unit]
   Description=Export all pools
   DefaultDependencies=no
-  After=final.target
+  Before=final.target
 
   [Service]
   Type=oneshot
