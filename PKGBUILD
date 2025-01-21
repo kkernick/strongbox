@@ -1,5 +1,5 @@
 pkgname=strongbox-tpm2-git
-pkgver=r38.eeba2c2
+pkgver=r39.29fe717
 pkgrel=1
 
 source=("git+https://github.com/kkernick/strongbox.git")
@@ -33,10 +33,11 @@ package() {
         install -Dm644 "$service" "$pkgdir/usr/lib/systemd/system/$service"
     done
 
+    install -Dm644 strongbox.conf "$pkgdir/usr/lib/systemd/system/mkinitcpio-generate-shutdown-ramfs.service.d/strongbox.conf"
+
     echo "
 Add:
     auth       required		       pam_exec.so 	    expose_authtok  /usr/bin/home-decrypt
 to /etc/pam.d/system-auth for login with home-decrypt
 "
 }
-
