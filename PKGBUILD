@@ -1,5 +1,5 @@
 pkgname=strongbox-tpm2-git
-pkgver=r39.29fe717
+pkgver=r40.70b3ec7
 pkgrel=1
 
 source=("git+https://github.com/kkernick/strongbox.git")
@@ -33,7 +33,7 @@ package() {
         install -Dm644 "$service" "$pkgdir/usr/lib/systemd/system/$service"
     done
 
-    install -Dm644 strongbox.conf "$pkgdir/usr/lib/systemd/system/mkinitcpio-generate-shutdown-ramfs.service.d/strongbox.conf"
+    install -Dm644 ../strongbox.conf "$pkgdir/usr/lib/systemd/system/mkinitcpio-generate-shutdown-ramfs.service.d/strongbox.conf"
 
     echo "
 Add:
