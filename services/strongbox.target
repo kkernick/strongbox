@@ -1,5 +1,6 @@
 [Unit]
 Description=Strongbox Decryption Target
+Before=strongbox-mount.service
 
 [Install]
 WantedBy=strongbox-mount.service

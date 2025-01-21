@@ -2,7 +2,6 @@
 Description=Unlock %i with Strongbox
 After=cryptsetup.target
 After=systemd-hibernate-resume.service
-After=initrd-root-device.target
 
 [Service]
 Type=oneshot
