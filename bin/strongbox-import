@@ -5,6 +5,8 @@ if [ -z "${1}" ]; then
 else
   POOL="${1}"
 fi
+echo "Importing ${POOL}"
+
 
 if [ -z $(zpool list -H -o name | grep $POOL) ]; then
   if [ -f /etc/zfs/zpool.cache ]; then
@@ -12,4 +14,6 @@ if [ -z $(zpool list -H -o name | grep $POOL) ]; then
   else
     zpool import -f $POOL -N
   fi
+else
+  echo "${POOL} has already been imported"
 fi
