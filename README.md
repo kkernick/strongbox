@@ -31,7 +31,7 @@ Then, enable the following `systemd` services:
 
 Finally, add the `strongbox` `mkinitcpio` hook to the HOOKS array. You must use the `systemd` hook, as opposed to the `base` hook, and `strongbox` must be *after* `systemd` and `keyboard`.
 
-No other services from `zfs-utils` needs to be enabled (`zfs.target`, `zfs-import.service`, etc) However, you will need a `cachefile` and `hostid` before generating the initcpio. This can be done with:
+No other services from `zfs-utils` needs to be enabled (`zfs.target`, `zfs-import.service`, etc) However, you will need a `hostid` before generating the initcpio. This can be done with:
 
 ```bash
 zpool set cachefile=/etc/zfs/zpool.cache ROOT
@@ -96,3 +96,10 @@ To cause a message to be printed to the log when the duress password is entered.
 
 > [!tip]
 > This setup has been explicitly designed to be used within a Secure Boot Setting. When the hash file is placed into a signed UKI image, we can ensure that neither the hash nor mode can be altered without rendering the UKI invalid.
+
+## Cachefiles
+
+ZFS supports using a `cachefile` to speed up the import process, to which a file can be generated for a pool using `zpool set cachefile=/etc/zfs/zpool.cache POOL`. However, cachefile's are designed to be *global*, in that all pools use the same cachefile. For our boot process, which separates each pool into a service such that they can be run in parallel, this slows down every pool to the speed of the slowest import. Therefore, `strongbox` uses a per-pool cachefile scheme. You have two options on using cachefiles:
+
+1. Do not use cachefiles at all. This ensures maximum parallel processing, and may be the only option given that upstream seeks to deprecate it.
+2. Use a ***Single*** cachefile for one of the pools, preferably the slowest. You'll want to ensure that every other pool is exported before creating the cache, otherwise they will also be included. Try testing with multiple cachefiles, but from personal testing it seems trying to use more than one just bogs down the boot speed; if one of your pools requires user input, like a password, while others are automatically decrypted, placing the cachefile on the automatic one is a good choice. The cachefile's name must match the pool name, and located at `/etc/zfs`, so the `rpool` cachefile should be `/etc/zfs/rpool.cache`.
