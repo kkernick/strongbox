@@ -7,7 +7,7 @@ add_strongbox_unit() {
   wanted="${2}"
 
   add_file "${path}" "/usr/lib/systemd/system/${name}"
-  add_symlink "/usr/lib/systemd/system/${2}.wants/${service}" "../${service}"
+  add_symlink "/usr/lib/systemd/system/${2}.wants/${name}" "../${name}"
 }
 
 
