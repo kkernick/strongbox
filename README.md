@@ -103,3 +103,7 @@ ZFS supports using a `cachefile` to speed up the import process, to which a file
 
 1. Do not use cachefiles at all. This ensures maximum parallel processing, and may be the only option given that upstream seeks to deprecate it.
 2. Use a ***Single*** cachefile for one of the pools, preferably the slowest. You'll want to ensure that every other pool is exported before creating the cache, otherwise they will also be included. Try testing with multiple cachefiles, but from personal testing it seems trying to use more than one just bogs down the boot speed; if one of your pools requires user input, like a password, while others are automatically decrypted, placing the cachefile on the automatic one is a good choice. The cachefile's name must match the pool name, and located at `/etc/zfs`, so the `rpool` cachefile should be `/etc/zfs/rpool.cache`.
+
+## Shutdown RAMFS
+
+On shutdown, `strongbox` will put itself into the temporary shutdown image created by `mkinitcpio` to properly export pools. This shutdown script exists as an override, located in `strongbox.conf`. However, there is no way to know whether other applications, particularly `plymouth`, have overrides themselves, which means you should check the `/usr/lib/systemd/system/mkinitcpio-generate-shutdown-ramfs.service.d` folder to ensure that strongbox is the last file (It's evaluated first-come, first-server), such that it is the last override to add itself. This will ensure proper pool export.
