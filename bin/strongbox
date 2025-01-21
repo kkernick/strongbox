@@ -1,4 +1,0 @@
-#!/bin/sh
-
-strongbox-import "${1}"
-strongbox-decrypt "${1}"

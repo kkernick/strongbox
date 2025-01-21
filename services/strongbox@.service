@@ -5,6 +5,7 @@ After=systemd-hibernate-resume.service
 
 [Service]
 Type=oneshot
+ExecStart=strongbox-import %i
 ExecStart=strongbox-decrypt %i
 
 [Install]
