@@ -16,7 +16,7 @@ build() {
 
   map add_binary zfs zpool mount.zfs
 
-  map add_binary sh bash strongbox strongbox-decrypt strongbox-import strongbox-mount \
+  map add_binary sh bash strongbox-decrypt strongbox-import strongbox-mount \
     shred mkdir chmod rmdir systemd-ask-password openssl xargs grep cut echo \
     b2sum awk cat dd
 
