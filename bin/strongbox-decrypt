@@ -36,8 +36,6 @@ else
   POOL="${1}"
 fi
 
-echo "Unlocking ${POOL}"
-
 # Iterate through every dataset.
 for dataset in $(zfs list -Ho name | grep "${POOL}"); do
 
@@ -56,8 +54,6 @@ for dataset in $(zfs list -Ho name | grep "${POOL}"); do
     if [ "${STRATEGY}" == "none" ]; then
       continue
     fi
-
-    echo "Unlocking ${dataset}"
 
     # We only try the enhanced method once. If the TPM/PIN fails, we fallback to the password.
     if [ "${STRATEGY}" == "enhanced" ]; then

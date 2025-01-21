@@ -25,8 +25,7 @@ Additionally, the root dataset must be specified via the `zfs=` kernel argument,
 
 Then, enable the following `systemd` services:
 
-1. `strongbox.service`: Handles loading the root's key and mounting at boot-time
-2. `strongbox-import.service`: Handles importing the root volume
+1. `strongbox@.service`: Handles loading the pool's key and mounting at boot-time. Enable this for each pool that you want to be imported and decrypted by strongbox, such as `strongbox@rpool.service`
 3. `strongbox-export.service`: Exports non-root pools on shutdown.
 3. `strongbox-shutdown-ramfs.service`: `mkinitcpio` does not properly generate a shutdown ramfs, which prevents ZFS from properly exporting on shutdown. This service handles it.
 
@@ -72,17 +71,6 @@ Then, any login of the user will automatically:
 1. Unlock the home dataset
 2. Mount a `tmpfs` to the user's `.cache`
 3. Mount the home dataset to `/home/USER`
-
-## Pool Imports
-
-By default, `strongbox` only imports the root pool during bootup in the initramfs. If you wish to use the TPM to decrypt other pools using the TPM and attested state in the initramfs, you can trivially add overrides to the `strongbox-import` service. Simply create the `/usr/lib/systemd/system/strongbox-import.service.d` folder, and create `.conf` files that contain the drop-ins. For example:
-
-```
-[Service]
-ExecStart=zpool import -c /etc/zfs/zdata.cache zdata -N
-```
-
-Note that the entire `/etc/zfs` directory is copied into the initramfs, which means that so long as your zpool's cache file exists in that folder, it will be included and available within the boot environment
 
 ## Duress Passwords
 
