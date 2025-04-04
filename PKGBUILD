@@ -1,5 +1,5 @@
 pkgname=strongbox-tpm2-git
-pkgver=r42.c4412fe
+pkgver=r43.8896203
 pkgrel=1
 
 source=("git+https://github.com/kkernick/strongbox.git")

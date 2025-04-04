@@ -18,7 +18,7 @@ build() {
 
   map add_binary sh bash strongbox-decrypt strongbox-import strongbox-mount \
     shred mkdir chmod rmdir systemd-ask-password openssl xargs grep cut echo \
-    b2sum awk cat dd
+    b2sum awk cat dd sha256sum
 
   map add_binary handle.tpm tpm2_startauthsession \
     tpm2_policypcr tpm2_unseal tpm2_readpublic tpm2_flushcontext \
