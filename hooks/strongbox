@@ -22,7 +22,7 @@ build() {
 
   map add_binary handle.tpm tpm2_startauthsession \
     tpm2_policypcr tpm2_unseal tpm2_readpublic tpm2_flushcontext \
-    tpm2_pcrextend tpm2_clear
+    tpm2_pcrextend tpm2_clear tpm2_pcrread
 
   for import_service in $(find /etc/systemd/system -name "strongbox@*.service"); do
     add_strongbox_unit "${import_service}" "strongbox.target"
