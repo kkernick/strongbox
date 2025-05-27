@@ -7,15 +7,15 @@ else
   POOL="${1}"
 fi
 
-if [[ $(zpool status | grep $POOL) ]]; then
-  exit 0
-fi
-
 IMPORT="zpool import -N ${POOL}"
 
 if [[ "${ROOT_POOL}" == "${POOL}" ]]; then
-  ROOT=$(xargs -n 1 -a "/proc/cmdline" | grep "root=" | cut -d "=" -f 2)
-  IMPORT="${IMPORT} -d ${ROOT}"
+  ROOTS=$(xargs -n 1 -a "/etc/cmdline.d/root.conf" | grep "root=" | cut -d "=" -f 2)
+  IFS=';'
+  for device in $ROOTS; do
+     IMPORT="${IMPORT} -d ${device}"
+  done
+
 elif [[ -f /etc/zfs/$POOL.cache ]]; then
   IMPORT="${IMPORT} -c /etc/zfs/$POOL.cache"
 fi
