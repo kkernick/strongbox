@@ -19,7 +19,6 @@ elif [[ "${POOL}" == "${ROOT_POOL}" && -n "${ROOTS}" ]]; then
   done
 fi
 
-echo "${IMPORT}"
 eval $IMPORT
 if [ $? -ne 0 ]; then
   echo "Import failed. Attempting force."
