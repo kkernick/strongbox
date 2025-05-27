@@ -10,7 +10,7 @@ fi
 IMPORT="zpool import -N ${POOL}"
 
 if [[ "${ROOT_POOL}" == "${POOL}" ]]; then
-  ROOTS=$(xargs -n 1 -a "/etc/cmdline.d/root.conf" | grep "root=" | cut -d "=" -f 2)
+  ROOTS=$(xargs -n 1 -a "/proc/cmdline" | grep "root=" | cut -d "=" -f 2)
   IFS=';'
   for device in $ROOTS; do
      IMPORT="${IMPORT} -d ${device}"
