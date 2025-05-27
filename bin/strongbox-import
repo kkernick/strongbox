@@ -1,7 +1,8 @@
 #!/bin/sh
 
+ROOT_POOL=$(xargs -n 1 -a "/proc/cmdline" | grep "zfs=" | cut -d "=" -f 2 | cut -d "/" -f 1)
 if [ -z "${1}" ]; then
-  POOL=$(xargs -n 1 -a "/proc/cmdline" | grep "zfs=" | cut -d "=" -f 2 | cut -d "/" -f 1)
+  POOL="${ROOT_POOL}"
 else
   POOL="${1}"
 fi
@@ -10,15 +11,12 @@ if [[ $(zpool status | grep $POOL) ]]; then
   exit 0
 fi
 
-ROOT=$(xargs -n 1 -a "/proc/cmdline" | grep "root=" | cut -d "=" -f 2)
 IMPORT="zpool import -N ${POOL}"
 
-if [[ -n $ROOT ]]; then
+if [[ "${ROOT_POOL}" == "${POOL}" ]]; then
+  ROOT=$(xargs -n 1 -a "/proc/cmdline" | grep "root=" | cut -d "=" -f 2)
   IMPORT="${IMPORT} -d ${ROOT}"
-
-fi
-
-if [[ -f /etc/zfs/$POOL.cache ]]; then
+elif [[ -f /etc/zfs/$POOL.cache ]]; then
   IMPORT="${IMPORT} -c /etc/zfs/$POOL.cache"
 fi
 
