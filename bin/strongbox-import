@@ -6,10 +6,32 @@ else
   POOL="${1}"
 fi
 
-if [ -z $(zpool list -H -o name | grep $POOL) ]; then
-  if [ -f /etc/zfs/$POOL.cache ]; then
-    zpool import -c /etc/zfs/$POOL.cache $POOL -N
-  else
-    zpool import $POOL -N
-  fi
+if [[ $(zpool status | grep $POOL) ]]; then
+  exit 0
+fi
+
+ROOT=$(xargs -n 1 -a "/proc/cmdline" | grep "root=" | cut -d "=" -f 2)
+IMPORT="zpool import -N ${POOL}"
+
+if [[ -n $ROOT ]]; then
+  IMPORT="${IMPORT} -d ${ROOT}"
+
+fi
+
+if [[ -f /etc/zfs/$POOL.cache ]]; then
+  IMPORT="${IMPORT} -c /etc/zfs/$POOL.cache"
+fi
+
+eval $IMPORT
+if [ $? -ne 0 ]; then
+  echo "Import failed. Attempting force."
+  IMPORT="${IMPORT} -f"
+  for i in {1..5}; do
+          eval $IMPORT
+          if [ $? -eq 0 ]; then
+                  break
+          fi
+          echo "Failed attempt $i of 5"
+          sleep 1
+  done
 fi
