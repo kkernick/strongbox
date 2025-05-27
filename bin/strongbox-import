@@ -20,6 +20,8 @@ elif [[ -f /etc/zfs/$POOL.cache ]]; then
   IMPORT="${IMPORT} -c /etc/zfs/$POOL.cache"
 fi
 
+echo "${IMPORT}"
+
 eval $IMPORT
 if [ $? -ne 0 ]; then
   echo "Import failed. Attempting force."
