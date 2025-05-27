@@ -9,19 +9,17 @@ fi
 
 IMPORT="zpool import -N ${POOL}"
 
-if [[ "${ROOT_POOL}" == "${POOL}" ]]; then
-  ROOTS=$(xargs -n 1 -a "/proc/cmdline" | grep "root=" | cut -d "=" -f 2)
+ROOTS=$(xargs -n 1 -a "/proc/cmdline" | grep "root=" | cut -d "=" -f 2)
+if [[ "${POOL}" == "${ROOT_POOL}" && -n "${ROOTS}" ]]; then
   IFS=';'
   for device in $ROOTS; do
      IMPORT="${IMPORT} -d ${device}"
   done
-
 elif [[ -f /etc/zfs/$POOL.cache ]]; then
   IMPORT="${IMPORT} -c /etc/zfs/$POOL.cache"
 fi
 
 echo "${IMPORT}"
-
 eval $IMPORT
 if [ $? -ne 0 ]; then
   echo "Import failed. Attempting force."
